@@ -641,7 +641,7 @@
         keyboardNavigation: true,
         language: 'en',
         startDate: -Infinity,
-        weekStart: 0,
+        weekStart: 1,
         disableTouchKeyboard: false,
         container: 'body'
     };
