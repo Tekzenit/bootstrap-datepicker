@@ -334,6 +334,9 @@
                 cls.push('focused');
             if( isUTCEquals(date, today))
                 cls.push('today');
+            if(date.getUTCFullYear() < year || (date.getUTCFullYear() === year && date.getUTCMonth() <= month && date.getUTCDate() < today.getUTCDate())){
+                cls.push('old');
+            }
             // Compare internal UTC date with local today, not UTC today
             if( this.date && isUTCEquals(date, this.date))
                 cls.push('active');
