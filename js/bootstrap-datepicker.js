@@ -409,12 +409,12 @@
 
         click: function(e){
             e.preventDefault();
-            var target = $(e.target).closest('div, td'),
+            var target = $(e.target).closest('li, td'),
                 year, month, day;
 
             if(target.length === 1){
                 switch (target[0].nodeName.toLowerCase()){
-                    case 'div':
+                    case 'li':
                         switch (target[0].className){
                             case 'prev':
                             case 'next':
@@ -717,11 +717,11 @@
     };
     DPGlobal.template = '<div class="datepicker">'+
                             '<div class="datepicker-days" tabindex="-1">'+
-                                '<div class="datepicker-header">'+
-                                    '<div class="prev"></div>'+
-                                    '<div class="datepicker-title"><span class="month"></span><span class="year"></span></div>'+
-                                    '<div class="next"></div>'+
-                                '</div>'+
+                                '<ul class="datepicker-header pagination small">'+
+                                    '<li class="prev"><a href="#"><i class="icon-outlined-arrow-left"></i></a></li>'+
+                                    '<li class="datepicker-title"><span class="month"></span><span class="year"></span></li>'+
+                                    '<li class="next"><a href="#"><i class="icon-outlined-arrow-right"></i></a></li>'+
+                                '</ul>'+
                                 '<table class=" table-condensed">'+
                                     DPGlobal.headTemplate+
                                     '<tbody></tbody>'+
