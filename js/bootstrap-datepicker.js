@@ -60,6 +60,7 @@
 
         this.setStartDate(this.o.defaultViewDate);
         this.setEndDate(this._o.endDate);
+        this.setDatesDisabled(this.o.datesdisabled);
 
         this.fillDow();
         this._allow_update = true;
@@ -88,6 +89,17 @@
             o.weekEnd = ((o.weekStart + 6) % 7);
 
             var format = DPGlobal.parseFormat(o.format);
+
+            o.datesDisabled = o.datesDisabled||[];
+            if (!$.isArray(o.datesDisabled)) {
+              var datesDisabled = [];
+              datesDisabled.push(DPGlobal.parseDate(o.datesDisabled, format, o.language));
+              o.datesDisabled = datesDisabled;
+            }
+            o.datesDisabled = $.map(o.datesDisabled,function(d){
+              return DPGlobal.parseDate(d, format, o.language);
+            });
+
             o.defaultViewDate = UTCToday();
             o.showOnFocus = o.showOnFocus !== undefined ? o.showOnFocus : true;
         },
@@ -244,6 +256,12 @@
             return this;
         },
 
+        setDatesDisabled: function(datesDisabled){
+          this._process_options({datesDisabled: datesDisabled});
+          this.update();
+          this.updateNavArrows();
+        },
+
         _allow_update: true,
         update: function(){
             if(!this._allow_update)
@@ -319,6 +337,12 @@
             // Compare internal UTC date with local today, not UTC today
             if( this.date && isUTCEquals(date, this.date))
                 cls.push('active');
+
+            if (this.o.datesDisabled.length > 0 &&
+              $.grep(this.o.datesDisabled, function(d){
+                return isUTCEquals(date, d); }).length > 0) {
+              cls.push('disabled', 'disabled-date');
+            }
 
             return cls;
         },
@@ -597,23 +621,6 @@
         }
     };
 
-    function opts_from_el(el, prefix){
-        // Derive options from element data-attrs
-        var data = $(el).data(),
-            out = {}, inkey,
-            replace = new RegExp('^' + prefix.toLowerCase() + '([A-Z])');
-        prefix = new RegExp('^' + prefix.toLowerCase());
-        function re_lower(_,a){
-            return a.toLowerCase();
-        }
-        for (var key in data)
-            if(prefix.test(key)){
-                inkey = key.replace(replace, re_lower);
-                out[inkey] = data[key];
-            }
-        return out;
-    }
-
     var old = $.fn.datepicker;
     var datepickerPlugin = function(option){
         var args = Array.apply(null, arguments);
@@ -623,10 +630,9 @@
                 data = $this.data('datepicker'),
                 options = typeof option === 'object' && option;
             if(!data){
-                var elopts = opts_from_el(this, 'date'),
-                    locopts = dates[this.language],
+                var locopts = dates[this.language],
                     // Options priority: js args, data-attrs, locales, defaults
-                    opts = $.extend({}, defaults, locopts, elopts, options);
+                    opts = $.extend({}, defaults, locopts, options);
                 $this.data('datepicker', (data = new Datepicker(this, opts)));
             }
         });
@@ -635,6 +641,7 @@
     $.fn.datepicker = datepickerPlugin;
 
     var defaults = $.fn.datepicker.defaults = {
+        datesDisabled: [],
         endDate: Infinity,
         forceParse: true,
         format: 'mm/dd/yyyy',
@@ -732,11 +739,5 @@
         $.fn.datepicker = old;
         return this;
     };
-
-    /* DATEPICKER DATA-API
-    * ================== */
-    $(function(){
-        datepickerPlugin.call($('[data-provide="datepicker-inline"]'));
-    });
 
 }(window.jQuery));
