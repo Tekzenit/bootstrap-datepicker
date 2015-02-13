@@ -425,21 +425,6 @@
                             day = parseInt(target.text(), 10)||1;
                             year = this.viewDate.getUTCFullYear();
                             month = this.viewDate.getUTCMonth();
-                            if(target.is('.old')){
-                                if(month === 0){
-                                    month = 11;
-                                    year -= 1;
-                                } else {
-                                    month -= 1;
-                                }
-                            } else if(target.is('.new')){
-                                if(month === 11){
-                                    month = 0;
-                                    year += 1;
-                                } else {
-                                    month += 1;
-                                }
-                            }
                             this._setDate(UTCDate(year, month, day));
                         }
                         break;
