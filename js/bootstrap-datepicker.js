@@ -691,9 +691,7 @@
                 date.push(val[format.parts[i]]);
             }
             return date.join('');
-        },
-        headTemplate: '<thead>'+
-                        '</thead>'
+        }
     };
     DPGlobal.template = '<div class="datepicker">'+
                             '<div class="datepicker-days" tabindex="-1">'+
@@ -703,7 +701,7 @@
                                     '<li class="next"><a href="#"><i class="icon-outlined-arrow-right"></i></a></li>'+
                                 '</ul>'+
                                 '<table class=" table-condensed">'+
-                                    DPGlobal.headTemplate+
+                                    '<thead></thead>'+
                                     '<tbody></tbody>'+
                                 '</table>'+
                             '</div>'+
