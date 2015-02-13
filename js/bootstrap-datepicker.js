@@ -40,7 +40,7 @@
         this._process_options(options);
 
         this.date = this.o.defaultViewDate;
-        this.viewDate = this.date;
+        this.viewDate = this.o.defaultViewDate;
         this.focusDate = null;
 
         this.element = $(element);
@@ -61,6 +61,9 @@
         this._allow_update = true;
 
         this.update();
+        if (this.o.activeDate) {
+          this._setDate(this.o.activeDate);
+        }
         this.show();
     };
 
@@ -95,7 +98,14 @@
               return DPGlobal.parseDate(d, format, o.language);
             });
 
-            o.defaultViewDate = UTCToday();
+            if (o.defaultViewDate) {
+              var year = o.defaultViewDate.year || new Date().getFullYear();
+              var month = o.defaultViewDate.month || 0;
+              var day = o.defaultViewDate.day || 1;
+              o.defaultViewDate = UTCDate(year, month, day);
+            } else {
+              o.defaultViewDate = UTCToday();
+            }
             o.showOnFocus = true;
         },
         _events: [],
@@ -307,7 +317,7 @@
             if( isUTCEquals(date, today))
                 cls.push('today');
             if(date.getUTCFullYear() === today.getUTCFullYear() && date.getUTCMonth() === today.getUTCMonth() && date.getUTCDate() < today.getUTCDate()){
-                cls.push('old');
+                cls.push('disabled', 'disabled-date');
             }
             // Compare internal UTC date with local today, not UTC today
             if( this.date && isUTCEquals(date, this.date))
@@ -336,10 +346,10 @@
             this.picker.find('.datepicker-days .datepicker-title')
                         .find('.year').text(year);
             this.updateNavArrows();
-            var prevMonth = UTCDate(year, month-1, 28),
+            var prevMonth = UTCDate(year, month, 0),
                 day = DPGlobal.getDaysInMonth(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth());
             prevMonth.setUTCDate(day);
-            prevMonth.setUTCDate(day - (prevMonth.getUTCDay() - this.o.weekStart + 7)%7);
+            prevMonth.setUTCDate(day - (prevMonth.getUTCDay() - this.o.weekStart)%7);
             var nextMonth = new Date(prevMonth);
             nextMonth.setUTCDate(nextMonth.getUTCDate() + 42);
             nextMonth = nextMonth.valueOf();
@@ -405,7 +415,7 @@
                             year = this.viewDate.getUTCFullYear();
                             month = this.viewDate.getUTCMonth();
                             this._setDate(UTCDate(year, month, day));
-                            this._focused_from = this.element;
+                            this._focused_from = target;
                         }
                         break;
                 }
@@ -571,6 +581,7 @@
 
     var defaults = $.fn.datepicker.defaults = {
         datesDisabled: [],
+        activeDate: null,
         endDate: Infinity,
         forceParse: true,
         format: 'mm/dd/yyyy',
