@@ -405,6 +405,7 @@
                             year = this.viewDate.getUTCFullYear();
                             month = this.viewDate.getUTCMonth();
                             this._setDate(UTCDate(year, month, day));
+                            this._focused_from = this.element;
                         }
                         break;
                 }
