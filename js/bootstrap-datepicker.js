@@ -34,18 +34,13 @@
                     date1.getUTCMonth() === date2.getUTCMonth() &&
                     date1.getUTCDate() === date2.getUTCDate());
     }
-    function alias(method){
-        return function(){
-            return this[method].apply(this, arguments);
-        };
-    }
     // Picker object
 
     var Datepicker = function(element, options){
         this._process_options(options);
 
         this.date = this.o.defaultViewDate;
-        this.viewDate = this.o.defaultViewDate;
+        this.viewDate = this.date;
         this.focusDate = null;
 
         this.element = $(element);
@@ -101,7 +96,7 @@
             });
 
             o.defaultViewDate = UTCToday();
-            o.showOnFocus = o.showOnFocus !== undefined ? o.showOnFocus : true;
+            o.showOnFocus = true;
         },
         _events: [],
         _secondaryEvents: [],
@@ -141,14 +136,10 @@
                 keydown: $.proxy(this.keydown, this)
             };
 
-            if(this.o.showOnFocus === true)
-                events.focus = $.proxy(this.show, this);
+            events.focus = $.proxy(this.show, this);
 
             this._events = [
-                [this.element, events]
-            ];
-            this._events.push(
-                // Component: listen for blur on element descendants
+                [this.element, events],
                 [this.element, '*', {
                     blur: $.proxy(function(e){
                         this._focused_from = e.target;
@@ -160,7 +151,7 @@
                         this._focused_from = e.target;
                     }, this)
                 }]
-            );
+            ];
 
             this._secondaryEvents = [
                 [this.picker, {
@@ -206,8 +197,6 @@
             this.picker.show();
             this._attachSecondaryEvents();
             this._trigger('show');
-            if((window.navigator.msMaxTouchPoints || 'ontouchstart' in document) && this.o.disableTouchKeyboard)
-                $(this.element).blur();
             return this;
         },
 
@@ -216,12 +205,6 @@
         },
         _local_to_utc: function(local){
             return local && new Date(local.getTime() - (local.getTimezoneOffset() * 60000));
-        },
-        _zero_time: function(local){
-            return local && new Date(local.getFullYear(), local.getMonth(), local.getDate());
-        },
-        _zero_utc_time: function(utc){
-            return utc && new Date(Date.UTC(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate()));
         },
 
         setValue: function(){
@@ -299,15 +282,12 @@
 
         fillDow: function(){
             var dowCnt = this.o.weekStart,
-                html = '<tr class="medium">';
-            html2 = '';
+                html = '<tr>';
             while (dowCnt < this.o.weekStart + 7){
                 k = (dowCnt++)%7;
-                html += '<th class="dow">'+dates[this.o.language].days[k]+'</th>';
-                html2 += '<th class="dow">'+dates[this.o.language].daysShort[k]+'</th>';
+                html += '<th class="dow"><span class="medium">'+dates[this.o.language].days[k]+'</span><span class="small">'+dates[this.o.language].daysShort[k]+'</span></th>';
             }
             html += '</tr>';
-            html += '<tr class="small">' + html2 + '</tr>';
             this.picker.find('.datepicker-days thead').append(html);
         },
 
@@ -389,17 +369,16 @@
 
             var d = new Date(this.viewDate),
                 year = d.getUTCFullYear(),
-                month = d.getUTCMonth();
+                month = d.getUTCMonth(),
+                prev = this.picker.find('.prev');
 
 
             if(this.o.startDate !== -Infinity && year <= this.o.startDate.getUTCFullYear() && month <= this.o.startDate.getUTCMonth()){
-                this.picker.find('.prev').addClass('disabled');
+                prev.addClass('disabled');
             }
             else {
-                this.picker.find('.prev').removeClass('disabled');
+                prev.removeClass('disabled');
             }
-
-            // this.picker.find('.next').css({visibility: 'visible'});
         },
 
         click: function(e){
@@ -430,7 +409,7 @@
                         break;
                 }
             }
-            if(this.picker.is(':visible') && this._focused_from)
+            if(this._focused_from)
                 $(this._focused_from).focus();
 
             delete this._focused_from;
@@ -439,13 +418,11 @@
         _setDate: function(date, which){
             this.date = date;
 
-            if(!which || which  === 'view')
-                this.viewDate = date && new Date(date);
+            this.viewDate = date && new Date(date);
 
             this.fill();
             this.setValue();
-            if(!which || which  !== 'view')
-                this._trigger('changeDate');
+            this._trigger('changeDate');
 
             var element;
             if(element)
@@ -460,39 +437,25 @@
             var new_date = new Date(date.valueOf()),
                 day = new_date.getUTCDate(),
                 month = new_date.getUTCMonth(),
-                mag = Math.abs(dir),
                 new_month, test;
             dir = dir > 0 ? 1 : -1;
-            if(mag === 1){
-                test = dir === -1
-                    // If going back one month, make sure month is not current month
-                    // (eg, Mar 31 -> Feb 31 == Feb 28, not Mar 02)
-                    ? function(){
-                        return new_date.getUTCMonth() === month;
-                    }
-                    // If going forward one month, make sure month is as expected
-                    // (eg, Jan 31 -> Feb 31 == Feb 28, not Mar 02)
-                    : function(){
-                        return new_date.getUTCMonth() !== new_month;
-                    };
-                new_month = month + dir;
-                new_date.setUTCMonth(new_month);
-                // Dec -> Jan (12) or Jan -> Dec (-1) -- limit expected date to 0-11
-                if(new_month < 0 || new_month > 11)
-                    new_month = (new_month + 12) % 12;
-            }
-            else {
-                // For magnitudes >1, move one month at a time...
-                for (var i=0; i < mag; i++)
-                    // ...which might decrease the day (eg, Jan 31 to Feb 28, etc)...
-                    new_date = this.moveMonth(new_date, dir);
-                // ...then reset the day, keeping it in the new month
-                new_month = new_date.getUTCMonth();
-                new_date.setUTCDate(day);
-                test = function(){
-                    return new_month !== new_date.getUTCMonth();
+            test = dir === -1
+                // If going back one month, make sure month is not current month
+                // (eg, Mar 31 -> Feb 31 == Feb 28, not Mar 02)
+                ? function(){
+                    return new_date.getUTCMonth() === month;
+                }
+                // If going forward one month, make sure month is as expected
+                // (eg, Jan 31 -> Feb 31 == Feb 28, not Mar 02)
+                : function(){
+                    return new_date.getUTCMonth() !== new_month;
                 };
-            }
+            new_month = month + dir;
+            new_date.setUTCMonth(new_month);
+            // Dec -> Jan (12) or Jan -> Dec (-1) -- limit expected date to 0-11
+            if(new_month < 0 || new_month > 11)
+                new_month = (new_month + 12) % 12;
+
             // Common date-resetting loop -- if date is beyond end of month, make it
             // end of month
             while (test()){
@@ -507,11 +470,6 @@
         },
 
         keydown: function(e){
-            if(this.picker.is(':not(:visible)')){
-                if(e.keyCode === 27) // allow escape to hide and re-show picker
-                    this.show();
-                return;
-            }
             var dateChanged = false,
                 dir, newDate, newViewDate,
                 focusDate = this.focusDate || this.viewDate;
@@ -573,19 +531,12 @@
                     this.viewDate = this.date || this.viewDate;
                     this.setValue();
                     this.fill();
-                    if(this.picker.is(':visible')){
-                        e.preventDefault();
-                        if(typeof e.stopPropagation === 'function'){
-                            e.stopPropagation(); // All modern browsers, IE9+
-                        } else {
-                            e.cancelBubble = true; // IE6,7,8 ignore "stopPropagation"
-                        }
+                    e.preventDefault();
+                    if(typeof e.stopPropagation === 'function'){
+                        e.stopPropagation(); // All modern browsers, IE9+
+                    } else {
+                        e.cancelBubble = true; // IE6,7,8 ignore "stopPropagation"
                     }
-                    break;
-                case 9: // tab
-                    this.focusDate = null;
-                    this.viewDate = this.date || this.viewDate;
-                    this.fill();
                     break;
             }
             if(dateChanged){
@@ -607,14 +558,11 @@
         args.shift();
         this.each(function(){
             var $this = $(this),
-                data = $this.data('datepicker'),
-                options = typeof option === 'object' && option;
-            if(!data){
-                var locopts = dates[this.language],
-                    // Options priority: js args, data-attrs, locales, defaults
-                    opts = $.extend({}, defaults, locopts, options);
-                $this.data('datepicker', (data = new Datepicker(this, opts)));
-            }
+            options = typeof option === 'object' && option;
+            var locopts = dates[this.language],
+                // Options priority: js args, data-attrs, locales, defaults
+                opts = $.extend({}, defaults, locopts, options);
+            $this.data('datepicker', new Datepicker(this, opts));
         });
         return this;
     };
@@ -629,7 +577,6 @@
         language: 'en',
         startDate: -Infinity,
         weekStart: 1,
-        disableTouchKeyboard: false,
         container: 'body'
     };
     $.fn.datepicker.Constructor = Datepicker;
