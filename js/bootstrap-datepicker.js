@@ -144,17 +144,9 @@
             if(this.o.showOnFocus === true)
                 events.focus = $.proxy(this.show, this);
 
-            if(this.element.is('div')){  // inline datepicker
-                this._events = [
-                    [this.element, events]
-               ];
-            } else {
-                this._events = [
-                    [this.element, {
-                        click: $.proxy(this.show, this)
-                    }]
-               ];
-            }
+            this._events = [
+                [this.element, events]
+            ];
             this._events.push(
                 // Component: listen for blur on element descendants
                 [this.element, '*', {
