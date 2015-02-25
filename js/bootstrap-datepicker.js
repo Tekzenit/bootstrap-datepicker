@@ -55,6 +55,7 @@
 
         this.setStartDate(this.o.defaultViewDate);
         this.setEndDate(this._o.endDate);
+        this.setDatesEnabled(this.o.datesenabled);
         this.setDatesDisabled(this.o.datesdisabled);
 
         this.fillDow();
@@ -93,6 +94,16 @@
               var datesDisabled = [];
               datesDisabled.push(DPGlobal.parseDate(o.datesDisabled, format, o.language));
               o.datesDisabled = datesDisabled;
+            }
+            o.datesDisabled = $.map(o.datesDisabled,function(d){
+              return DPGlobal.parseDate(d, format, o.language);
+            });
+
+            o.datesEnabled = o.datesEnabled||[];
+            if (!$.isArray(o.datesEnabled)) {
+              var datesEnabled = [];
+              datesEnabled.push(DPGlobal.parseDate(o.datesEnabled, format, o.language));
+              o.datesEnabled = datesEnabled;
             }
             o.datesDisabled = $.map(o.datesDisabled,function(d){
               return DPGlobal.parseDate(d, format, o.language);
@@ -247,6 +258,12 @@
           this.updateNavArrows();
         },
 
+        setDatesEnabled: function(datesEnabled){
+          this._process_options({datesEnabled: datesEnabled});
+          this.update();
+          this.updateNavArrows();
+        },
+
         _allow_update: true,
         update: function(){
             if(!this._allow_update)
@@ -323,7 +340,13 @@
             if( this.date && isUTCEquals(date, this.date))
                 cls.push('active');
 
-            if (this.o.datesDisabled.length > 0 &&
+            if (this.o.datesEnabled.length > 0 && !cls['disabled'] &&
+                $.grep(this.o.datesEnabled, function(d){
+                  return isUTCEquals(date, d); }).length == 0) {
+              cls.push('disabled', 'disabled-date');
+            }
+
+            if (this.o.datesDisabled.length > 0 && !cls['disabled'] &&
               $.grep(this.o.datesDisabled, function(d){
                 return isUTCEquals(date, d); }).length > 0) {
               cls.push('disabled', 'disabled-date');
@@ -581,6 +604,7 @@
 
     var defaults = $.fn.datepicker.defaults = {
         datesDisabled: [],
+        datesEnabled: [],
         activeDate: null,
         endDate: Infinity,
         forceParse: true,
