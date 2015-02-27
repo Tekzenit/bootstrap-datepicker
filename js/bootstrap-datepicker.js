@@ -260,7 +260,7 @@
 
         setDatesEnabled: function(datesEnabled){
           this._process_options({datesEnabled: datesEnabled});
-          this.update();
+          this.update({date: this.date});
           this.updateNavArrows();
         },
 
@@ -273,7 +273,10 @@
                 date = null,
                 fromArgs = false;
             if(arguments.length){
-                date = this._local_to_utc(date);
+                $.each(arguments, $.proxy(function(i, argument){
+                  if  (argument.date instanceof Date)
+                    date = this._local_to_utc(argument.date);
+                }, this));
                 fromArgs = true;
             }
             else {
