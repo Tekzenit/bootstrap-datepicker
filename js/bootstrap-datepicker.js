@@ -259,7 +259,6 @@
         },
 
         setDatesEnabled: function(datesEnabled){
-            debugger;
             if (datesEnabled && datesEnabled.length == 0) {
                 datesEnabled.push(new Date());
             }
