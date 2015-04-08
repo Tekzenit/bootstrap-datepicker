@@ -260,7 +260,7 @@
 
         setDatesEnabled: function(datesEnabled){
           this._process_options({datesEnabled: datesEnabled});
-          this.update({date: this.date});
+          this.update();
           this.updateNavArrows();
         },
 
@@ -273,10 +273,7 @@
                 date = null,
                 fromArgs = false;
             if(arguments.length){
-                $.each(arguments, $.proxy(function(i, argument){
-                  if  (argument.date instanceof Date)
-                    date = this._local_to_utc(argument.date);
-                }, this));
+                date = this._local_to_utc(date);
                 fromArgs = true;
             }
             else {
@@ -406,7 +403,8 @@
             var d = new Date(this.viewDate),
                 year = d.getUTCFullYear(),
                 month = d.getUTCMonth(),
-                prev = this.picker.find('.prev');
+                prev = this.picker.find('.prev'),
+                next = this.picker.find('.next');
 
 
             if(this.o.startDate !== -Infinity && year <= this.o.startDate.getUTCFullYear() && month <= this.o.startDate.getUTCMonth()){
@@ -415,6 +413,15 @@
             else {
                 prev.removeClass('disabled');
             }
+
+            if(this.o.endDate !== Infinity && year <= this.o.endDate.getUTCFullYear() && month < this.o.endDate.getUTCMonth()){
+                next.removeClass('disabled');
+            }
+            else {
+                next.addClass('disabled');
+            }
+
+
         },
 
         click: function(e){
