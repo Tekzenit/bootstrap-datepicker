@@ -259,6 +259,10 @@
         },
 
         setDatesEnabled: function(datesEnabled){
+            debugger;
+            if (datesEnabled && datesEnabled.length == 0) {
+                datesEnabled.push(new Date());
+            }
           this._process_options({datesEnabled: datesEnabled});
           this.update();
           this.updateNavArrows();
